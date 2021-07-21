@@ -47,6 +47,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QPushButton>
+#include <QScopedValueRollback>
 #include <QSplitter>
 #include <QToolBar>
 #include <QUndoStack>
@@ -359,25 +360,14 @@ void TemplatesDock::applyChanges()
 
     checkTileset();
 
-    ourEmittingChanged = true;
+    QScopedValueRollback<bool> emittingChanged(ourEmittingChanged, true);
     emit TemplateManager::instance()->objectTemplateChanged(mObjectTemplate);
-    ourEmittingChanged = false;
 }
 
 void TemplatesDock::focusInEvent(QFocusEvent *event)
 {
-    Q_UNUSED(event)
     mPropertiesDock->setDocument(mDummyMapDocument.data());
-}
-
-void TemplatesDock::focusOutEvent(QFocusEvent *event)
-{
-    Q_UNUSED(event)
-
-    if (hasFocus() || !mDummyMapDocument)
-        return;
-
-    mDummyMapDocument->setSelectedObjects(QList<MapObject*>());
+    QDockWidget::focusInEvent(event);
 }
 
 void TemplatesDock::retranslateUi()
@@ -395,17 +385,7 @@ void TemplatesDock::fixTileset()
         return;
 
     if (tileset->imageStatus() == LoadingError) {
-        // This code opens a new document even if there is a tileset document
-        auto tilesetDocument = DocumentManager::instance()->findTilesetDocument(tileset);
-
-        if (!tilesetDocument) {
-            auto newTilesetDocument = TilesetDocumentPtr::create(tileset);
-            tilesetDocument = newTilesetDocument.data();
-            DocumentManager::instance()->addDocument(newTilesetDocument);
-        } else {
-            DocumentManager::instance()->openTileset(tileset);
-        }
-
+        auto tilesetDocument = DocumentManager::instance()->openTileset(tileset);
         connect(tilesetDocument, &TilesetDocument::tilesetChanged,
                 this, &TemplatesDock::checkTileset, Qt::UniqueConnection);
     } else if (!tileset->fileName().isEmpty() && tileset->status() == LoadingError) {

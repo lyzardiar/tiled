@@ -49,7 +49,10 @@ public:
 
 private:
     Preferences();
+    Preferences(const QString &fileName);
     ~Preferences() override;
+
+    void initialize();
 
 public:
     bool showGrid() const;
@@ -132,6 +135,7 @@ public:
     void setUseOpenGL(bool useOpenGL);
 
     void setObjectTypes(const ObjectTypes &objectTypes);
+    void setPropertyTypes(const PropertyTypes &propertyTypes);
 
     QString objectTypesFile() const;
     void setObjectTypesFile(const QString &filePath);
@@ -171,8 +175,8 @@ public:
     { return value(QLatin1String(key), defaultValue).template value<T>(); }
 
     static QString homeLocation();
-    static QString dataLocation();
-    static QString configLocation();
+    QString dataLocation() const;
+    QString configLocation() const;
 
     static QString startupProject();
     static void setStartupProject(const QString &filePath);
@@ -233,6 +237,8 @@ signals:
 
     void objectTypesChanged();
 
+    void propertyTypesChanged();
+
     void isPatronChanged();
 
     void recentFilesChanged();
@@ -249,6 +255,7 @@ private:
     void objectTypesFileChangedOnDisk();
 
     FileSystemWatcher mWatcher;
+    bool mPortable = false;
 
     QString mObjectTypesFile;
     QDateTime mObjectTypesFileLastSaved;

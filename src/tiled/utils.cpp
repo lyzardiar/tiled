@@ -40,6 +40,7 @@
 #include <QKeyEvent>
 #include <QMainWindow>
 #include <QMenu>
+#include <QPainter>
 #include <QProcess>
 #include <QRegularExpression>
 #if QT_VERSION < QT_VERSION_CHECK(5,15,0)
@@ -279,6 +280,17 @@ RangeSet<int> matchingRanges(const QStringList &words, QStringRef string)
     return result;
 }
 
+QIcon colorIcon(const QColor &color, QSize size)
+{
+    QPixmap pixmap(size);
+    pixmap.fill(color);
+
+    QPainter painter(&pixmap);
+    painter.setPen(QColor(0, 0, 0, 128));
+    painter.drawRect(0, 0, size.width() - 1, size.height() - 1);
+
+    return QIcon(pixmap);
+}
 
 /**
  * Restores a widget's geometry.
